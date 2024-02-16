@@ -6,12 +6,6 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 logger = getLogger(__name__)
 
-download_progress = Progress(
-    SpinnerColumn(),
-    TextColumn("[progress.description]{task.description}. "),
-    transient=True,
-)
-
 
 class RepositoryDownloader:
     def __init__(self, org: str, download_dir: Path):
@@ -22,7 +16,11 @@ class RepositoryDownloader:
         download_path = self.download_dir / self.org / repo
         download_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with download_progress as progress:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}. "),
+            transient=True,
+        ) as progress:
             if (download_path / ".git").exists():
                 progress.add_task(f"Pulling repository {repo}")
                 process = Popen(["git", "pull", "-f"], cwd=download_path)
