@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "edd_cli"
+version = "0.1.0"
+description = ""
+authors = ["Benjamín Vicente <benjavicente@uc.cl>"]
+readme = "readme.md"
+packages = [{include = "edd_cli"}]
+
+[tool.poetry.scripts]
+edd = "edd_cli.cli:app"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.109.2"
+pydantic = "^2.6.1"
+docker = "^7.0.0"
+typer = {extras = ["all"], version = "^0.9.0"}
+uvicorn = "^0.27.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
