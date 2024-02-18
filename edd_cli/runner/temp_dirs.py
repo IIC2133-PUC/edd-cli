@@ -2,7 +2,7 @@ import hashlib
 import shutil
 from pathlib import Path
 
-from ..schema.schema import PathMapping, ResolvedTestStage
+from ..schema.tests import PathMapping, ResolvedTestStage
 
 
 class TempDirGeneratorFactory:
@@ -16,26 +16,24 @@ class TempDirGeneratorFactory:
 class TempDirGenerator:
     "Creates temporary directories for test stages."
 
-    def __init__(self, base_path: Path, cache: bool):
+    def __init__(self, base_path: Path, cache: bool = True):
         self.base_path = base_path
-
-        self._cache = cache
+        self.cache = cache
 
     def create(self, stage: ResolvedTestStage):
         file_hash = hashlib.sha256()
         for file in stage.files:
             hashlib.file_digest(open(file.source, "rb"), lambda: file_hash)
 
-        command_hash = hashlib.md5()
-        for command in stage.command:
-            command_hash.update(command.encode())
+        stage_hash = hashlib.md5()
+        stage_hash.update(stage.model_dump_json().encode())
 
-        dir_name = f"{command_hash.hexdigest()}-{file_hash.hexdigest()}"
+        dir_name = f"{stage_hash.hexdigest()}-{file_hash.hexdigest()}"
         path = (self.base_path / dir_name).resolve()
 
-        cached = self._cache and path.exists() and path.is_dir()
+        cached = self.cache and path.exists() and path.is_dir()
 
-        if cached and not self._cache:
+        if cached and not self.cache:
             shutil.rmtree(path)
 
         return TempDir(path, stage.files, cached)

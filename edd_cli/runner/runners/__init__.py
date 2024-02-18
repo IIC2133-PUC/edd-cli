@@ -1,4 +1,4 @@
-from .abstract_runner import AbstractRunner
 from .docker import DockerRunner
+from .interface import AbstractRunner, RunErrorException
 
-__all__ = ["AbstractRunner", "DockerRunner"]
+__all__ = ["AbstractRunner", "DockerRunner", "RunErrorException"]

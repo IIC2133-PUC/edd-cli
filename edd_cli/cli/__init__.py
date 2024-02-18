@@ -3,7 +3,8 @@ from typer import Typer
 from . import commands, config_logging
 
 app = Typer()
-app.add_typer(config_logging.app)
-app.add_typer(commands.app)
+app.command()(commands.run)
+app.command()(commands.server)
+app.callback()(config_logging.set_logging_level)
 
 __all__ = ["app"]

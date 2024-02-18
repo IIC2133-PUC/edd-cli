@@ -22,7 +22,7 @@ def create_secret():
 class ServerSettings(BaseSettings):
     github_org: str = "IIC2133-PUC"
     repository_download_dir: Path = Path(temp_dir, ".edd-repos")
-    repository_temp_dir: Path = Path(temp_dir, ".edd-cache")
+    output_temp_dir: Path = Path(temp_dir, ".edd-cache")
     tests_directory: Path = Path("tests")
     secret: str = Field(default_factory=create_secret)
 

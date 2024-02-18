@@ -1,6 +1,12 @@
+from datetime import datetime
 from pathlib import Path
 
 from pydantic import BaseModel, PrivateAttr
+
+
+class Assignment(BaseModel):
+    name: str
+    updated_at: datetime
 
 
 class PathMapping(BaseModel):
@@ -41,6 +47,7 @@ class TestStage(BaseModel):
     require: list[str | PathMapping]
     include: list[str | PathMapping]
     command: list[str]
+    time_it: bool = False
 
     def with_resolved_paths(self, include_dir: Path, require_dir: Path):
         files: list[PathMapping] = []

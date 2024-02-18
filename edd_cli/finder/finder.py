@@ -1,10 +1,10 @@
-from datetime import datetime
 from logging import getLogger
 from pathlib import Path
 
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
-from ..schema.schema import TestCase, TestGroup
+from ..schema.tests import Assignment, TestCase, TestGroup
+from ..utils.dir import dir_last_use
 
 logger = getLogger(__name__)
 
@@ -53,18 +53,6 @@ def get_tests_groups(test_dir: Path):
     return test_groups
 
 
-class Assignment(BaseModel):
-    name: Path
-    updated_at: datetime
-
-
-def find_last_updated_at(dir: Path) -> datetime:
-    return max(
-        (datetime.fromtimestamp(path.stat().st_mtime) for path in dir.rglob("*")),
-        default=datetime.fromtimestamp(0),
-    )
-
-
 class TestCaseFinder:
     def __init__(self, assignments_dir: Path):
         self.assignments_dir = assignments_dir
@@ -81,7 +69,7 @@ class TestCaseFinder:
                 logger.warning(f"Skipping assignment {dir} with no groups")
                 continue
 
-            assignment = Assignment(name=dir, updated_at=find_last_updated_at(dir))
+            assignment = Assignment(name=dir.name, updated_at=dir_last_use(dir))
             assignments.append(assignment)
 
         return assignments

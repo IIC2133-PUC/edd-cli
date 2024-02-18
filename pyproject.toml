@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "edd_cli"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["Benjamín Vicente <benjavicente@uc.cl>"]
 readme = "readme.md"
@@ -13,7 +13,6 @@ edd = "edd_cli.cli:app"
 python = "^3.11"
 fastapi = "^0.109.2"
 pydantic = "^2.6.1"
-docker = "^7.0.0"
 typer = { extras = ["all"], version = "^0.9.0" }
 uvicorn = "^0.27.1"
 pydantic-settings = "^2.2.0"
@@ -21,7 +20,6 @@ pydantic-settings = "^2.2.0"
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
-
 
 [build-system]
 requires = ["poetry-core"]

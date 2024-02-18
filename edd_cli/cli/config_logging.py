@@ -1,12 +1,9 @@
 import logging
 
 from rich.logging import RichHandler
-from typer import Option, Typer
-
-app = Typer()
+from typer import Option
 
 
-@app.callback()
 def set_logging_level(
     verbose: bool = Option(False, "-v", "--verbose"),
     debug: bool = Option(False, "-d", "--debug"),

@@ -1,43 +1,58 @@
+from logging import getLogger
 from pathlib import Path
 from typing import Annotated
 
+from rich.console import Console
 from rich.progress import track
-from typer import Option, Typer
+from rich.table import Table
+from typer import Option
 
 from ..finder import get_tests_groups
-from ..runner import DockerRunner, Environment, TempDirGenerator
+from ..runner import DockerRunner, Orchestrator, TempDirGenerator
 
 default_repo_dir = Path.cwd()
 default_test_dir = Path.cwd().joinpath("tests")
 
 runner = DockerRunner()
 
-app = Typer()
+logger = getLogger(__name__)
 
 
-@app.command()
 def server():
     from ..server import __main__  # noqa: F401
 
 
 Dir = Annotated[Path, Option(exists=True, dir_okay=True, file_okay=False)]
 
+dir_generator = TempDirGenerator(base_path=Path(".edd-cache"))
 
-@app.command()
+
 def run(
     test_dir: Dir = default_test_dir,
     repo_dir: Dir = default_repo_dir,
     clean_run: bool = Option(False, "-c", "--clean-run"),
 ):
-
+    console = Console()
+    dir_generator.cache = not clean_run
     test_groups = get_tests_groups(test_dir)
-    dir_generator = TempDirGenerator(base_path=Path(".edd-cache"), cache=not clean_run)
+    orchestrator = Orchestrator(repo_dir, runner, dir_generator)
 
-    for test_group in test_groups:
-        environment = Environment(repo_dir, runner, dir_generator)
-        environment.run_stages(test_group)
+    for g in orchestrator.iter_run_assignment_group(test_groups):
+        if g.result.verdict == "error":
+            console.print(f"Error preparing {g.name} ({g.result.error})", style="red")
+            continue
 
-        description = f"Running tests for {test_group.name}"
-        for test in track(test_group.tests, description=description):
-            test_env = environment.clone()
-            test_env.run_stages(test)
+        table = Table(title=f"{g.name} Test cases")
+        table.add_column("Test case")
+        table.add_column("Verdict")
+        table.add_column("Error")
+        table.add_column("Time")
+        table.add_column("Score")
+
+        desc = f"Running tests for {g.name}"
+        for t in track(g.iter_run_group_test(), description=desc, total=len(g.tests)):
+            if t.verdict == "error":
+                table.add_row(t.name, "[red]Error", t.error, "", "")
+            else:
+                table.add_row(t.name, "[green]Ok", "", str(t.time), str(t.percentage))
+        console.print(table)
