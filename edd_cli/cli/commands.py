@@ -56,3 +56,15 @@ def run(
             else:
                 table.add_row(t.name, "[green]Ok", "", str(t.time), str(t.percentage))
         console.print(table)
+
+
+def list_test_groups(test_dir: Dir = default_test_dir):
+    test_groups = get_tests_groups(test_dir)
+    console = Console()
+    for group in test_groups:
+        table = Table(title=group.display_name, show_header=False)
+        table.add_column("i")
+        table.add_column("Test case")
+        for i, test in enumerate(group.tests):
+            table.add_row(str(i), test.name)
+        console.print(table)

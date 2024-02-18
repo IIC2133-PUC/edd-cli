@@ -26,14 +26,10 @@ test_case_finder = TestCaseFinder(settings.tests_directory)
 
 app = FastAPI(
     title="EDD Server",
-    version="0.1.0",
+    description="Server for running tests on student repositories.",
+    version="0.2.0",
     dependencies=[Depends(verify_secret)],
 )
-
-
-@app.get("/assignments", tags=["assignments"])
-def list_assignments() -> list[Assignment]:
-    return test_case_finder.list_assignments()
 
 
 class CacheSize(BaseModel):
@@ -56,6 +52,11 @@ def remove_cache(seconds_old: int) -> CacheSize:
     return get_cache_size()
 
 
+@app.get("/assignments", tags=["assignments"])
+def list_assignments() -> list[Assignment]:
+    return test_case_finder.list_assignments()
+
+
 @app.post("/assignments/{test_suite}/{user}", tags=["assignments"])
 def run_tests(
     assignment: str, user: str, clean_run: bool = False, pull_if_exists: bool = True
@@ -76,7 +77,6 @@ def run_tests(
         subpath=Path(assignment, user), cache=not clean_run
     )
 
-    orchestrator = Orchestrator(repo_path, runner, dir_generator)
-    results = orchestrator.run(assignment_groups)
+    results = Orchestrator(repo_path, runner, dir_generator).run(assignment_groups)
 
     return AssignmentResults(name=assignment, user=user, results=results)
