@@ -1,8 +1,8 @@
 from logging import getLogger
 from pathlib import Path
 
+from ..schema import AbstractPipeline, PathMapping
 from .runners import AbstractRunner
-from .schema import AbstractPipeline, PathMapping
 from .temp_dirs import TempDirGenerator
 
 logger = getLogger(__name__)

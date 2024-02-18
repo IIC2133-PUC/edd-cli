@@ -2,7 +2,15 @@ import hashlib
 import shutil
 from pathlib import Path
 
-from .schema import PathMapping, ResolvedTestStage
+from ..schema.schema import PathMapping, ResolvedTestStage
+
+
+class TempDirGeneratorFactory:
+    def __init__(self, base_path: Path):
+        self._base_path = base_path
+
+    def create(self, *, cache: bool, subpath: Path = Path()):
+        return TempDirGenerator(self._base_path / subpath, cache)
 
 
 class TempDirGenerator:
