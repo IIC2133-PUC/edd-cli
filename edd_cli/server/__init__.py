@@ -1,7 +1,9 @@
 from datetime import timedelta
 from pathlib import Path
+from zipfile import ZipFile
 
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from ..finder import TestCaseFinder
@@ -9,7 +11,7 @@ from ..repository import RepositoryDownloader, RepositoryDownloadException
 from ..runner import DockerRunner, Orchestrator, TempDirGeneratorFactory
 from ..schema.results import AssignmentResults
 from ..schema.tests import Assignment
-from ..utils.dir import dir_clear_old, dir_size
+from ..utils.dir import dir_clear_old, dir_last_modified, dir_size
 from .auth import verify_secret
 from .settings import settings
 
@@ -55,6 +57,24 @@ def remove_cache(seconds_old: int) -> CacheSize:
 @app.get("/assignments", tags=["assignments"])
 def list_assignments() -> list[Assignment]:
     return test_case_finder.list_assignments()
+
+
+@app.get("/assignments/{test_suite}.zip", tags=["assignments"])
+def download_assignment(test_suite: str) -> FileResponse:
+    dir_path = test_case_finder.get_assignment_path(test_suite)
+    if dir_path is None:
+        raise HTTPException(status_code=404, detail="Test suite not found")
+
+    zip_path = dir_path.with_suffix(".zip")
+
+    dir_mage = dir_last_modified(dir_path).timestamp()
+
+    if not zip_path.is_file() or zip_path.stat().st_mtime < dir_mage:
+        with ZipFile(zip_path, "w") as zipf:
+            for file in dir_path.rglob("*"):
+                zipf.write(file, file.relative_to(dir_path))
+
+    return FileResponse(zip_path)
 
 
 @app.post("/assignments/{test_suite}/{user}", tags=["assignments"])

@@ -58,7 +58,12 @@ class TestCaseFinder:
         self.assignments_dir = assignments_dir
 
     def list_assignments(self):
+        if not self.assignments_dir.is_dir():
+            logger.warning(f"Assignments dir {self.assignments_dir} does not exist")
+            return []
+
         assignments: list[Assignment] = []
+
         for dir in self.assignments_dir.iterdir():
             if not dir.is_dir():
                 continue
@@ -74,9 +79,16 @@ class TestCaseFinder:
 
         return assignments
 
-    def get_assignment(self, assignment_name: str):
+    def get_assignment_path(self, assignment_name: str):
         assignment_path = self.assignments_dir.joinpath(assignment_name)
         if not assignment_path.exists() or not assignment_path.is_dir():
+            return None
+
+        return assignment_path
+
+    def get_assignment(self, assignment_name: str):
+        assignment_path = self.get_assignment_path(assignment_name)
+        if not assignment_path:
             return None
 
         groups = get_tests_groups(assignment_path)

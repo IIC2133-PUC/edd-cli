@@ -11,6 +11,14 @@ def dir_last_use(dir: Path) -> datetime:
     )
 
 
+def dir_last_modified(dir: Path) -> datetime:
+    "Returns the last time the directory was modified."
+    return max(
+        (datetime.fromtimestamp(path.stat().st_mtime) for path in dir.rglob("*")),
+        default=datetime.fromtimestamp(0),
+    )
+
+
 def dir_size(dir: Path) -> int:
     "Returns the size of the directory in bytes."
     return sum(f.stat().st_size for f in dir.glob("**/*") if f.is_file())

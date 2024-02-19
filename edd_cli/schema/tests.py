@@ -18,6 +18,7 @@ class PathMapping(BaseModel):
 
 
 class ResolvedTestStage(BaseModel):
+    "The resolved files and command that will be run."
     files: list[PathMapping]
     command: list[str]
 
