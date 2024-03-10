@@ -1,18 +1,21 @@
 from logging import getLogger
 from pathlib import Path
+from shutil import rmtree
+
+from edd_cli.runner.runners.interface import RunErrorException
 
 from ..schema.results import TestOkResult
 from ..schema.tests import AbstractPipeline, PathMapping, ResolvedTestStage
+from ..utils.paths import path_to_show
 from .runners import AbstractRunner
-from .temp_dirs import TempDirGenerator
+from .temp_dirs import TempDirGenerator, TempDir
 
 logger = getLogger(__name__)
-
 
 def assert_all_files_exist(files: list[PathMapping]):
     for file in files:
         if not file.source.exists():
-            raise FileNotFoundError(f"File {file.source} does not exist")
+            raise RunErrorException(f"File {path_to_show(file)} does not exist")
 
 
 class InvalidResultException(Exception):
@@ -55,12 +58,19 @@ class Environment:
             if runner_dir.cached:
                 logger.info(f"[cache hit] Skipping {name}[{i}]: {command}")
             else:
-
                 logger.info(f"[cache miss] Running {name}[{i}]: {command}")
-                runner_dir.prepare()
-                self._runner.run(command, runner_dir.path)
+                self.__run(runner_dir, command)
 
             self._time += self._get_current_step_time() if considered_in_time else 0
+
+    def __run(self, runner_dir: TempDir, command: list[str]):
+        runner_dir.prepare()  # init dir
+        try:
+            self._runner.run(command, self._dir)
+        except Exception:
+            # rm if failed
+            rmtree(self._dir, ignore_errors=True)
+            raise
 
     def clone(self):
         "Clone the environment, starting the current environment directory."
