@@ -3,6 +3,7 @@ import shutil
 from pathlib import Path
 
 from ..schema.tests import PathMapping, ResolvedTestStage
+from ..utils.hash import file_digest
 
 
 class TempDirGeneratorFactory:
@@ -23,7 +24,7 @@ class TempDirGenerator:
     def create(self, stage: ResolvedTestStage):
         file_hash = hashlib.sha256()
         for file in stage.files:
-            hashlib.file_digest(open(file.source, "rb"), lambda: file_hash)
+            file_digest(open(file.source, "rb"), lambda: file_hash)
 
         stage_hash = hashlib.md5()
         stage_hash.update(stage.model_dump_json().encode())
