@@ -71,7 +71,9 @@ class OrchestratorForGroup:
 
     def iter_run_group_test(self):
         if not isinstance(self._group_result, TestGroupOkResults):
-            raise ValueError("Can't run tests on a errored group result")
+            raise ValueError(
+                f"Can't run tests on a errored group result {self._group_result.error}"
+            )
 
         for test in self._group.tests:
             test_env = self._env.clone()
