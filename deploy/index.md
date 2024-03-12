@@ -71,7 +71,25 @@ Basado parte en esta guia: https://tutlinks.com/deploy-fastapi-on-ubuntu-gunicor
   sudo systemctl restart caddy.service
   ```
 
+- Instalar Docker
+
+  Ver https://docs.docker.com/engine/install/ubuntu/
+
+- Instalar GitHub CLI
+
+  Ver https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+
+- Crear un PAT para poder clonar desde el servidor
+
+  Ver https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token
+
+- Inicia sesión en GitHub CLI usando el auth PAT creado
+
+  Eso permitirá clonar repositorios privados de la organización del PAT
+
 ## Actualizar el servidor
+
+En el `server.v2/edd-cli`
 
 - Actualizar el servidor
 
@@ -90,3 +108,11 @@ Basado parte en esta guia: https://tutlinks.com/deploy-fastapi-on-ubuntu-gunicor
   ```sh
   sudo systemctl restart gunicorn.service
   ```
+
+## Subir testcases
+
+```
+rsync -r tests/. dccuc@edd.ing.puc.cl:/home/server.v2/edd-cli/tests/{tarea}-{año}-{semestre}/.
+```
+
+Luego revisar como quedo la carpeta en el servidor.
