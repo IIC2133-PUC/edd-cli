@@ -39,7 +39,6 @@ class Orchestrator:
                     name=group.display_name, error=exception.message
                 )
                 self._assignments_results.append(result)
-                yield OrchestratorForGroup(result, group, environment)
 
     @property
     def assignment_results(self):
