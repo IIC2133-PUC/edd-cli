@@ -34,7 +34,7 @@ class RepositoryDownloader:
                 process = Popen(["git", "pull", "-f"], cwd=download_path)
             else:
                 progress.add_task(f"Cloning repository {repo}")
-                url = f"git@github.com:{self.org}/{repo}.git"
+                url = f"https://github.com/{self.org}/{repo}.git"
                 process = Popen(["git", "clone", url, repo], cwd=download_path.parent)
 
             return_code = process.wait()
