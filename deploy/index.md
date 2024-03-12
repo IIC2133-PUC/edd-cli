@@ -75,6 +75,14 @@ Basado parte en esta guia: https://tutlinks.com/deploy-fastapi-on-ubuntu-gunicor
 
   Ver https://docs.docker.com/engine/install/ubuntu/
 
+  Asegúrate que se tengan permisos para el socket de Docker
+
+- Obtener la imagen del runner
+
+  ```sh
+  docker image pull carlogauss33/edd-runner
+  ```
+
 - Instalar GitHub CLI
 
   Ver https://github.com/cli/cli/blob/trunk/docs/install_linux.md
