@@ -83,6 +83,8 @@ Basado parte en esta guia: https://tutlinks.com/deploy-fastapi-on-ubuntu-gunicor
 
   Ver https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token
 
+  Tiene que tener permiso de escritura y lectura de código
+
 - Inicia sesión en GitHub CLI usando el auth PAT creado
 
   Eso permitirá clonar repositorios privados de la organización del PAT
