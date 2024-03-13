@@ -1,6 +1,9 @@
 import shutil
 from datetime import datetime, timedelta
+from logging import getLogger
 from pathlib import Path
+
+logger = getLogger(__name__)
 
 
 def dir_last_use(dir: Path) -> datetime:
@@ -33,4 +36,5 @@ def dir_clear_old(dir: Path, min_age: timedelta):
         age = datetime.now() - dir_last_use(subdir)
 
         if min_age < age:
+            logger.info(f"Removing {subdir} (last used {age} ago)")
             shutil.rmtree(subdir)
