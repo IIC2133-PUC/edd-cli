@@ -9,4 +9,6 @@ RUN export LD_LIBRARY_PATH=/usr/include/gtk-3.0/
 RUN apt install -y python3
 RUN apt install -y time htop
 
+USER runner
 WORKDIR /runner
+RUN chown -R runner /runner
