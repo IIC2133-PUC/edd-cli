@@ -9,7 +9,9 @@ RUN export LD_LIBRARY_PATH=/usr/include/gtk-3.0/
 RUN apt install -y python3
 RUN apt install -y time htop
 
-RUN groupadd -r runner && adduser runner
+RUN groupadd --gid 10000 -r runner
+RUN adduser runner --disabled-password --uid 10000 --gid 10000
+
+WORKDIR /home/runner
+RUN chown -R runner /home/runner
 USER runner
-WORKDIR /runner
-RUN chown -R runner /runner
