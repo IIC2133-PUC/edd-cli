@@ -12,8 +12,8 @@ RUN apt install -y time htop
 # Id de usuairo y grupo correspondiente al host
 ARG gid=1000
 ARG uid=1000
-RUN groupadd --gid {gid} runner
-RUN adduser runner --disabled-password --uid {uid} --gid {gid}
+RUN groupadd --gid ${gid} runner
+RUN adduser runner --disabled-password --uid ${uid} --gid ${gid}
 
 WORKDIR /home/runner
 RUN chown -R runner /home/runner
