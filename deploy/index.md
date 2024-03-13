@@ -121,8 +121,9 @@ En el `server.v2/edd-cli`
 
 ## Subir testcases
 
-```
-rsync -r tests/. dccuc@edd.ing.puc.cl:/home/server.v2/edd-cli/tests/{tarea}-{año}-{semestre}/.
+```sh
+rsync --recursive --delete tests/. \
+  dccuc@edd.ing.puc.cl:/home/server.v2/edd-cli/tests/{tarea}-{año}-{semestre}/.
 ```
 
 Luego revisar como quedo la carpeta en el servidor.
