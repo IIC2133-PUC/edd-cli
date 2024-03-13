@@ -77,10 +77,10 @@ Basado parte en esta guia: https://tutlinks.com/deploy-fastapi-on-ubuntu-gunicor
 
   Asegúrate que se tengan permisos para el socket de Docker
 
-- Obtener la imagen del runner
+- Buildear la imagen del runner
 
   ```sh
-  docker image pull carlogauss33/edd-runner
+  docker build -f deploy/Dockerfile -t edd-runner .
   ```
 
 - Instalar GitHub CLI

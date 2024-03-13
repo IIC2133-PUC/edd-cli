@@ -20,7 +20,7 @@ repo_downloader = RepositoryDownloader(
     download_dir=settings.repository_download_dir,
 )
 
-runner = DockerRunner()
+runner = DockerRunner(image=settings.docker_image)
 
 dir_generator_factory = TempDirGeneratorFactory(base_path=settings.output_temp_dir)
 test_case_finder = TestCaseFinder(settings.tests_directory)
@@ -81,7 +81,6 @@ def download_assignment(test_suite: str) -> FileResponse:
 def run_tests(
     assignment: str, user: str, clean_run: bool = False, pull_if_exists: bool = True
 ) -> AssignmentResults:
-
     assignment_groups = test_case_finder.get_assignment(assignment)
 
     if assignment_groups is None:

@@ -25,6 +25,7 @@ class ServerSettings(BaseSettings):
     output_temp_dir: Path = Path(temp_dir, ".edd-cache")
     tests_directory: Path = Path("tests")
     secret: str = Field(default_factory=create_secret)
+    docker_image: str = "edd-runner"
 
 
 settings = ServerSettings()
