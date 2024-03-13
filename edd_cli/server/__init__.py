@@ -59,9 +59,9 @@ def list_assignments() -> list[Assignment]:
     return test_case_finder.list_assignments()
 
 
-@app.get("/assignments/{test_suite}.zip", tags=["assignments"])
-def download_assignment(test_suite: str) -> FileResponse:
-    dir_path = test_case_finder.get_assignment_path(test_suite)
+@app.get("/assignments/{assignment}.zip", tags=["assignments"])
+def download_assignment(assignment: str) -> FileResponse:
+    dir_path = test_case_finder.get_assignment_path(assignment)
     if dir_path is None:
         raise HTTPException(status_code=404, detail="Test suite not found")
 
@@ -77,7 +77,7 @@ def download_assignment(test_suite: str) -> FileResponse:
     return FileResponse(zip_path)
 
 
-@app.post("/assignments/{test_suite}/{user}", tags=["assignments"])
+@app.post("/assignments/{assignment}/{user}", tags=["assignments"])
 def run_tests(
     assignment: str, user: str, clean_run: bool = False, pull_if_exists: bool = True
 ) -> AssignmentResults:
