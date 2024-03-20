@@ -1,19 +1,23 @@
 from datetime import timedelta
+from logging import getLogger
 from pathlib import Path
 from zipfile import ZipFile
 
-from fastapi import Depends, FastAPI, HTTPException
+import httpx
+from fastapi import APIRouter, BackgroundTasks, Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
 
 from ..finder import TestCaseFinder
 from ..repository import RepositoryDownloader, RepositoryDownloadException
 from ..runner import DockerRunner, Orchestrator, TempDirGeneratorFactory
 from ..schema.results import AssignmentResults
-from ..schema.tests import Assignment
+from ..schema.tests import Assignment, TestGroup
 from ..utils.dir import dir_clear_old, dir_last_modified, dir_size
 from .auth import verify_secret
 from .settings import settings
+
+logger = getLogger(__name__)
 
 repo_downloader = RepositoryDownloader(
     org=settings.github_org,
@@ -77,10 +81,67 @@ def download_assignment(assignment: str) -> FileResponse:
     return FileResponse(zip_path)
 
 
-@app.post("/assignments/{assignment}/{user}", tags=["assignments"])
-def run_tests(
-    assignment: str, user: str, clean_run: bool = False, pull_if_exists: bool = True
+class CallbackResponse(BaseModel):
+    user: str
+    assignment: str
+
+
+def _run_tests(
+    assignment: str,
+    user: str,
+    clean_run: bool,
+    repo_path: Path,
+    assignment_groups: list[TestGroup],
 ) -> AssignmentResults:
+    dir_generator = dir_generator_factory.create(
+        subpath=Path(assignment, user), cache=not clean_run
+    )
+
+    results = Orchestrator(repo_path, runner, dir_generator).run(assignment_groups)
+
+    return AssignmentResults(name=assignment, user=user, results=results)
+
+
+def _run_tests_tasks(
+    assignment: str,
+    user: str,
+    clean_run: bool,
+    repo_path: Path,
+    assignment_groups: list[TestGroup],
+    callback_url: HttpUrl,
+) -> None:
+    results = _run_tests(assignment, user, clean_run, repo_path, assignment_groups)
+    final_callback_url = str(callback_url) + f"/{assignment}/{user}"
+    response = httpx.post(final_callback_url, content=results.model_dump_json())
+    logger.info(
+        f"Callback to {callback_url} returned {response.status_code}: {response.text}"
+    )
+
+
+run_tests_callback_router = APIRouter()
+
+
+@run_tests_callback_router.post(
+    "{$callback_url}/{$request.path.assignment}/{$request.path.user}", status_code=200
+)
+def test_result():
+    "Callback called by the server to report the results of the tests."
+
+
+@app.post(
+    "/assignments/{assignment}/{user}",
+    tags=["assignments"],
+    callbacks=run_tests_callback_router.routes,
+    responses={200: {"model": AssignmentResults}, 202: {"model": CallbackResponse}},
+)
+def run_tests(
+    assignment: str,
+    user: str,
+    background_tasks: BackgroundTasks,
+    clean_run: bool = False,
+    pull_if_exists: bool = True,
+    callback_url: HttpUrl | None = None,
+) -> AssignmentResults | CallbackResponse:
     assignment_groups = test_case_finder.get_assignment(assignment)
 
     if assignment_groups is None:
@@ -92,10 +153,16 @@ def run_tests(
     except RepositoryDownloadException:
         raise HTTPException(status_code=500, detail="Failed to download repository")
 
-    dir_generator = dir_generator_factory.create(
-        subpath=Path(assignment, user), cache=not clean_run
-    )
+    if callback_url:
+        background_tasks.add_task(
+            _run_tests_tasks,
+            assignment,
+            user,
+            clean_run,
+            repo_path,
+            assignment_groups,
+            callback_url,
+        )
+        return CallbackResponse(user=user, assignment=assignment)
 
-    results = Orchestrator(repo_path, runner, dir_generator).run(assignment_groups)
-
-    return AssignmentResults(name=assignment, user=user, results=results)
+    return _run_tests(assignment, user, clean_run, repo_path, assignment_groups)
