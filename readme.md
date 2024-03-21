@@ -4,15 +4,35 @@ CLI que permite ejecutar testcases tanto localmente como en un servidor.
 
 ## Instalación
 
-Requiere [poetry](https://python-poetry.org/) y Python 3.11 o superior.
+Requiere [poetry](https://python-poetry.org/). Probado con Python 3.11 y superior.
+
+Por ahora, requiere de Docker para ejecutar los test cases.
 
 ```bash
-# Instalar dependencias
+# Instalar dependencias y este paquete
 poetry install
 
-# Usar el CLI
+# Entrar al entorno virtual
+poetry shell
 
+# Ir al directorio donde se va a ejecutar
+# Si se ejecuta localmente, los test deben encontrase en ./tests
+
+# Usar el CLI
 edd --help
+# edd run    # para ejecutar localmente
+# edd server # para ejecutar el servidor (ver /docs)
+```
+
+## Resolución de problemas
+
+### Se queda pegado o con errores
+
+Puede ocurrir un problema inicialmente, al descargar la imagen o ejecutar el contenedor por primera vez.
+Se puede resolver eliminar el cache y corriéndolo nuevamente.
+
+```sh
+rm -rf .edd-cache
 ```
 
 ## Arquitectura
@@ -61,7 +81,7 @@ Hay 2 archivos especiales, `setup.json` y `test.json`. Ambos tienen el mismo for
   "steps": {
     // `include` y `require` son para copiar
     // archivos en la etapa que le corresponden.
-    // `include` añade archivos desde los archivos del test. 
+    // `include` añade archivos desde los archivos del test.
     // `require` añade archivos desde los archivos del repositorio
     //           o de la etapa pasada.
     // Ambos siguen el mismo formato.
@@ -79,18 +99,16 @@ Hay 2 archivos especiales, `setup.json` y `test.json`. Ambos tienen el mismo for
 
 ### Entornos de ejecución
 
-Con lo indicado en los test cases, se creará un directorio temporal que será el entorno de ejecución, que es único por contenido de archivos e instrucciones a ejecutar. Es decir, a menos que se tengan exactamente los mismos archivos y las mismas instrucciones, se creará un directorio distinto para cada test. 
+Con lo indicado en los test cases, se creará un directorio temporal que será el entorno de ejecución, que es único por contenido de archivos e instrucciones a ejecutar. Es decir, a menos que se tengan exactamente los mismos archivos y las mismas instrucciones, se creará un directorio distinto para cada test.
 
-Estos entornos se guardan en `.edd-cache` localmente y `$(TEMP)/edd-cache` en el servidor.
+Estos entornos se guardan en `./.edd-cache` localmente y `$(TEMP)/edd-cache` en el servidor.
 Como son carpetas únicas cuyo nombre depende del contenido y la configuración del test, se pueden cachear y reutilizar en siguientes utilizaciones. Esto es útil cuando una tarea tiene múltiples partes, y solo se modificó una.
-
 
 Por ahora no se eliminan automáticamente, así que hay que tener cuidado de que crezcan más de lo esperado. Se expone un endpoint para eliminarlos en el servidor.
 
 ### Salida, stdout y tiempo
 
 El entorno almacenará el resultado final del directorio de ejecución. Además, almacenará el stdout y tiempo de ejecución de cada test, con el formato `.{nombre}.{nombre-carpeta}`.
-
 
 ### Autenticación
 
