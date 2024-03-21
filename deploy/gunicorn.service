@@ -1,0 +1,20 @@
+[Unit]
+Description=gunicorn daemon for the edd runner server
+After=network.target
+
+[Service]
+User=dccuc
+Group=dccuc
+WorkingDirectory=/home/server.v2/edd-cli
+
+EnvironmentFile="/home/server.v2/edd-cli/.env"  # Esto no me funcionó, añadí Environment para arreglarlo
+Environment="SECRET=<el secreto>"
+Environment="GITHUB_TOKEN=<PAT>"
+Environment="PATH=/home/server.v2/edd-cli/.venv/bin:/usr/bin"  # Ojo con añadir el path a Git, Docker y GH Cli
+
+PassEnvironment=PATH SECRET GITHUB_TOKEN
+
+ExecStart=/home/server.v2/edd-cli/.venv/bin/gunicorn -k uvicorn.workers.UvicornWorker edd_cli.server:app
+
+[Install]
+WantedBy=multi-user.target
