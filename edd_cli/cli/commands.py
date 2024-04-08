@@ -2,16 +2,23 @@ from logging import getLogger
 from pathlib import Path
 from typing import Annotated
 
+import pydantic_core
 from rich.console import Console
 from rich.progress import track
 from rich.table import Table
 from typer import Option
 
 from ..finder import get_tests_groups
-from ..runner import DockerRunner, Orchestrator, TempDirGenerator
+from ..runner import (
+    AbstractRunner,
+    DirectRunner,
+    DockerRunner,
+    Orchestrator,
+    TempDirGenerator,
+)
 
 default_repo_dir = Path.cwd()
-default_test_dir = Path.cwd().joinpath("tests")
+default_test_dir = Path("tests")
 
 runner = DockerRunner()
 
@@ -68,3 +75,21 @@ def list_test_groups(test_dir: Dir = default_test_dir):
         for i, test in enumerate(group.tests):
             table.add_row(str(i), test.name)
         console.print(table)
+
+
+def run_cloned_folders(
+    output_file: Path, repos_dir: Dir = Path("repos"), test_dir: Dir = default_test_dir
+):
+    runner = DirectRunner()
+    repos = [repo for repo in repos_dir.iterdir() if repo.is_dir()]
+    with output_file.open("wb") as output:
+        for repo in track(repos):
+            result = run_cloned_folder(repo, test_dir, runner)
+            json = pydantic_core.to_json(result)
+            output.write(json)
+            output.write(b"\n")
+
+
+def run_cloned_folder(repo_dir: Path, test_dir: Path, runner: AbstractRunner):
+    assignment_groups = get_tests_groups(test_dir)
+    return Orchestrator(repo_dir, runner, dir_generator).run(assignment_groups)
